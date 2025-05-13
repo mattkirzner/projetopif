@@ -10,6 +10,7 @@
 
 # Ideia Projeto:
 - Base do Jogo será PONG(AirHockey) com um gol Line.
-- As laterias da tela terao um "PowerUP" de velocidade:se a bola bater na lateral ela ganhara 1.5x~2.0x de velocidade, toda vez que a bola bater no player(barra) a velocidade voltara a 1x
+- As laterias da tela terao um "PowerUP" de velocidade:se a bola bater na lateral ela ganhara 1.5x~2.0x de velocidade.
+- Toda vez que a bola bater no player(barra) a velocidade voltara a 1x.
 - Diferencial será o jogador tentar bater a bola na lateral para ganhat vantageme marcar o ponto.
 

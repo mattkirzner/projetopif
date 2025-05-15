@@ -19,7 +19,7 @@ typedef struct
 
 int x = 34, y = 12;
 int pontuacao = 0;
-int x_paddle = MAXX *0.96;  // paddle na direita
+int x_paddle = MAXX *0.97;  // paddle na direita
 int y_paddle = MAXY * 0.5;  // paddle começa no meio vertical
 int x_paddleT = MINX + 2; 
 int y_paddleT = MAXY * 0.5;
@@ -92,6 +92,26 @@ void printPontuacao() {
     screenSetColor(YELLOW, DARKGRAY);
     screenGotoxy(0, 0);
     printf("Pontuação: %d", pontuacao);
+
+
+}
+
+
+void printGolLines() {
+    screenSetColor(RED, DARKGRAY);
+    int y_middle = MAXY * 0.5;
+
+    // Gol line esquerda
+    for (int i = 0; i < 4; i++) {
+        screenGotoxy(MINX + 1, y_middle + i);
+        printf("|");
+    }
+
+    // Gol line direita
+    for (int i = 0; i < 4; i++) {
+        screenGotoxy(MAXX - 2, y_middle + i);
+        printf("|");
+    }
 }
 
 int main() {
@@ -106,6 +126,7 @@ int main() {
     printPaddleTwo(y_paddleT);
     printPaddle(y_paddle);
     printPontuacao();
+    printGolLines(); // desenha as gol lines
     screenUpdate();
 
     while (ch != 10) // Enter para sair
@@ -145,27 +166,44 @@ int main() {
             int newY = y + incY;
 
             // Rebater nas bordas superior e inferior
-            if (newY >= MAXY - 1 || newY <= MINY + 1)
+            if (newY >= MAXY - 1 || newY <= MINY + 1){
+                timerInit(40); // Toda vez que o bola bater na barras Horizantais ela aumenta a velocidade
                 incY = -incY;
+
+            }
 
             // Colisão com paddle vertical (x_paddle fixo, y_paddle variável com altura 4)
             if (newX == x_paddle - 1 && newY >= y_paddle && newY <= y_paddle + 4) {
-                
+                timerInit(70); // toda vez que o Paddle bater na bola ele volta a velocidade normal
                 incX = -incX; // inverte direção horizontal da bola
             }
             if (newX == x_paddleT + 1 && newY >= y_paddleT && newY <= y_paddleT + 4) {
+                timerInit(70);
+                incX = -incX;
+            }
+            
+            if (newX == MAXX - 2 && newY >= MAXY/2 && newY < MAXY/2 + 4) {
+                 pontuacao++;
+                 incX = -incX;
+            }
+
+                // Verifica se a bola entra no gol esquerdo 
+            else if (newX == MINX + 1 && newY >= MAXY/2 && newY < MAXY/2 + 4) {
+                pontuacao++;
                 incX = -incX;
             }
 
-            // Rebater nas bordas esquerda e direita
-            if (newX >= MAXX - 1 || newX <= MINX + 1){
+              // Rebater se bater fora da área do gol
+            else if (newX >= MAXX - 1 || newX <= MINX + 1) {
                 incX = -incX;
-                pontuacao++;
             }
+
+            
 
             printHello(newX, newY);
             printPaddle(y_paddle);
             printPontuacao();
+            printGolLines(); // desenha as gol lines
             screenUpdate();
             timer++;
         }

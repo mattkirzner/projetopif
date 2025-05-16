@@ -6,6 +6,7 @@
 */
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "screen.h"
 #include "keyboard.h"
@@ -25,6 +26,12 @@ typedef struct
     
 } Ball;
 
+typedef struct 
+{ char *nome;
+    /* data */
+}Player;
+
+
 
 int x = MAXX / 2, y = MAXY / 2;
 int pontuacao = 0;
@@ -33,6 +40,8 @@ Ball ball = {1, 1, MAXX / 2, MAXY / 2};        // Bola principal, com incremento
 //Ball extraBall = {-1, -1, MAXX / 2, MAXY / 2}; // Bola extra, inicialmente inativa (incX = incY = -1)
 int velocidadeBall = 50;
 int activateBall = 0;
+Player one;
+Player two;
 
 Paddles paddleA = { MAXX - 3, 1+MAXY / 2 };   // direita (borda direita corrigida)
 Paddles paddleB = { MINX + 2, 1+MAXY / 2 };   // esquerda (borda esquerda corrigida)
@@ -69,12 +78,12 @@ void printResult(int pontuacao, int pontuacaoB) {
     screenGotoxy(35, 22);
     if (pontuacao > pontuacaoB)
     {
-        printf("Player 1 Wins");
+        printf("Vencendor: %s", one.nome);
     }
     
     if (pontuacao < pontuacaoB)
     {
-        printf("Player 2 Wins");
+        printf("Vencendor: %s", two.nome);
     }
 
     // screenGotoxy(34, 23);
@@ -92,13 +101,13 @@ void printResult(int pontuacao, int pontuacaoB) {
 void printPontuacao() {
     screenSetColor(YELLOW, DARKGRAY);
     screenGotoxy(20, 0);
-    printf("Pontuação A:  %d", pontuacao);
+    printf("PT %s:  %d",one.nome, pontuacao);
 }
 
 void printPontuacaoB() {
     screenSetColor(YELLOW, DARKGRAY);
     screenGotoxy(MAXX - 40, 0);
-    printf("Pontuação B: %d", pontuacaoB);
+    printf("PT %s: %d", two.nome, pontuacaoB);
 }
 
 void printGolLines() {
@@ -186,7 +195,17 @@ void updateBall(Ball *b) {
 int main() {
     static int ch = 0;
     static long timer = 0;
-    // int gameState = 0; // Variável global já declarada
+    char x[20];
+
+    printf("Digite o nome do player 1: ");
+    scanf("%19s", x);  // evita ultrapassar os 100 caracteres
+    one.nome = malloc(strlen(x) + 1);
+    strcpy(one.nome, x);
+
+    printf("Digite o nome do player 2: ");
+    scanf("%19s", x);
+    two.nome = malloc(strlen(x) + 1);
+    strcpy(two.nome, x);
 
     screenInit(1);
     keyboardInit();
@@ -250,7 +269,9 @@ int main() {
     printf("Pressione ENTER para sair...");
     screenUpdate();
     while (readch() != 10); // While como barreira para o Jogador ler a Mensagem
-    
+
+    free(one.nome);
+    free(two.nome);
     keyboardDestroy();
     screenDestroy();
     timerDestroy();

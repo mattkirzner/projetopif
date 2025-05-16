@@ -23,18 +23,18 @@ int pontuacaoB = 0;
 int incX = 1, incY = 1;
 int velocidadeBall=50;
 
-Paddles paddleA = { MAXX * 0.97, MAXY * 0.5 }; // direita
+Paddles paddleA = { MAXX * 0.97, MAXY * 0.5 }; // direita(ja Passando os valores dos componentes)
 Paddles paddleB = { MINX + 2, MAXY * 0.5 };    // esquerda
 
 void printPaddle(Paddles *p, int nextY) {
     screenSetColor(CYAN, DARKGRAY);
     for (int i = 0; i < 4; i++) {
-        screenGotoxy(p->x_paddle, p->y_paddle + i);
+        screenGotoxy(p->x_paddle, p->y_paddle + i); // Usando "o p->"" para modificar direto na struct e nao uma copia.
         printf(" ");
     }
     p->y_paddle = nextY;
     for (int i = 0; i < 4; i++) {
-        screenGotoxy(p->x_paddle, p->y_paddle + i);
+        screenGotoxy(p->x_paddle, p->y_paddle + i); // Usando "o p->"" para modificar direto na struct e nao uma copia.
         printf("|");
     }
 }
@@ -144,7 +144,7 @@ int main() {
 
             // Rebater nas bordas superior e inferior
             if (newY >= MAXY - 1 || newY <= MINY + 1){
-                if(velocidadeBall>15) velocidadeBall-=5; // Toda vez que o bola bater na barras Horizantais ela aumenta a velocidade
+                if(velocidadeBall>20) velocidadeBall-=5; // Toda vez que o bola bater na barras Horizantais ela aumenta a velocidade
                 timerInit(velocidadeBall);
                 incY = -incY;
             }
@@ -153,12 +153,14 @@ int main() {
             if (newX == paddleA.x_paddle - 1 && newY >= paddleA.y_paddle && newY <= paddleA.y_paddle + 3) {
                 timerInit(velocidadeBall=50); // toda vez que o Paddle bater na bola ele volta a velocidade normal
                 incX = -incX; // inverte direção horizontal da bola
+            
             }
 
             // Segundo Paddle.
             if (newX == paddleB.x_paddle + 1 && newY >= paddleB.y_paddle && newY <= paddleB.y_paddle + 3) {
-                timerInit(velocidadeBall=50);
+                timerInit(velocidadeBall=50); // toda vez que o Paddle bater na bola ele volta a velocidade normal
                 incX = -incX;
+
             }
 
             // Verifica se a bola entrou no gol direito

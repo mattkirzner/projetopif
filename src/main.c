@@ -50,21 +50,29 @@ void printBall(int nextX, int nextY) {
     printf("O");
 }
 
-void printKey(int ch) {
+void printResult(int pontuacao, int pontuacaoB) {
     screenSetColor(YELLOW, DARKGRAY);
     screenGotoxy(35, 22);
-    printf("Key code :");
-
-    screenGotoxy(34, 23);
-    printf("            ");
-    
-    if (ch == 27) screenGotoxy(36, 23);
-    else screenGotoxy(39, 23);
-
-    printf("%d ", ch);
-    while (keyhit()) {
-        printf("%d ", readch());
+    if (pontuacao>pontuacaoB)
+    {
+        printf("Player 1 Wins");
     }
+    
+    if (pontuacao<pontuacaoB)
+    {
+        printf("Player 2 Wins");
+    }
+
+    // screenGotoxy(34, 23);
+    // printf("            ");
+    
+    // if (ch == 27) screenGotoxy(36, 23);
+    // else screenGotoxy(39, 23);
+
+    // printf("%d ", ch);
+    // while (keyhit()) {
+    //     printf("%d ", readch());
+    // }
 }
 
 void printPontuacao() {
@@ -99,7 +107,8 @@ void printGolLines() {
 int main() {
     static int ch = 0;
     static long timer = 0;
-
+    int gameState = 0; //0 em pausa, 1 jogando, o jogo comeca pausado
+    
     screenInit(1);
     keyboardInit();
     timerInit(70);
@@ -112,8 +121,8 @@ int main() {
     printGolLines(); // desenha as gol lines
     screenUpdate();
 
-    while (ch != 10) // Enter para sair
-    {
+    while (ch != 10 && pontuacao<2 && pontuacaoB<2) // Enter para sair. O jogo também termina se um jogador
+    {                                               // conseguir mais de 4 pontos
         if (keyhit()) {
             ch = readch();
 
@@ -134,12 +143,16 @@ int main() {
                     if (paddleB.y_paddle + 4 < MAXY - 1)
                         printPaddle(&paddleB, paddleB.y_paddle + 1);
                     break;
+                case 32: // tecla espaco jogo começa
+                    gameState = 1;
+                    break;
             }
 
             screenUpdate();
         }
 
-        if (timerTimeOver() == 1) {
+        
+        if (timerTimeOver() == 1 && gameState == 1) {
             int newX = x + incX;
             int newY = y + incY;
 
@@ -166,14 +179,20 @@ int main() {
             if (newX == MAXX - 2 && newY >= MAXY / 2 && newY < MAXY / 2 + 4) {
                 pontuacao++;
                 incX = -incX;
-                velocidadeBall = 50;
+                timerInit(velocidadeBall = 50);
+                newX=MAXX/2; //manda a bola para o meio da tela
+                newY=MAXY/2;
+                gameState = 0; //pausa o jogo até que seja despausado
             }
 
             // Gol esquerda
             else if (newX == MINX + 1 && newY >= MAXY / 2 && newY < MAXY / 2 + 4) {
                 pontuacaoB++;
                 incX = -incX;
-                velocidadeBall = 50;
+                timerInit(velocidadeBall = 50);
+                newX=MAXX/2; //manda a bola para o meio da tela
+                newY=MAXY/2;
+                gameState = 0; //pausa o jogo até que seja despausado
             }
 
             // Rebater nas bordas laterais fora do gol
@@ -196,6 +215,17 @@ int main() {
         }
     }
 
+    // while (ch =! 10)
+    // {
+    //     screenUpdate();
+    //     if (keyhit()) {
+    //         ch = readch();
+    //         screenUpdate();
+    //     }
+
+    //     printResult(pontuacao,pontuacaoB);
+    // }
+    
     keyboardDestroy();
     screenDestroy();
     timerDestroy();

@@ -198,7 +198,7 @@ int main() {
     char x[20];
 
     printf("Digite o nome do player 1: ");
-    scanf("%19s", x);  // evita ultrapassar os 100 caracteres
+    scanf("%19s", x);  // evita ultrapassar os 20 caracteres
     one.nome = malloc(strlen(x) + 1);
     strcpy(one.nome, x);
 

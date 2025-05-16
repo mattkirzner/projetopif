@@ -14,51 +14,65 @@
 typedef struct 
 { 
     int x_paddle, y_paddle;
-    /* data */
+    
 } Paddles;
+
+typedef struct 
+{
+    int incX;
+    int incY;
+    int x,y;
+    
+} Ball;
+
 
 int x = MAXX / 2, y = MAXY / 2;
 int pontuacao = 0;
 int pontuacaoB = 0;
-int incX = 1, incY = 1;
+Ball ball = {1, 1, MAXX / 2, MAXY / 2};        // Bola principal, com incrementos iniciais 1 e 1
+//Ball extraBall = {-1, -1, MAXX / 2, MAXY / 2}; // Bola extra, inicialmente inativa (incX = incY = -1)
 int velocidadeBall = 50;
+int activateBall = 0;
 
-Paddles paddleA = { MAXX - 3, MAXY / 2 };   // direita (borda direita corrigida)
-Paddles paddleB = { MINX + 2, MAXY / 2 };   // esquerda (borda esquerda corrigida)
+Paddles paddleA = { MAXX - 3, 1+MAXY / 2 };   // direita (borda direita corrigida)
+Paddles paddleB = { MINX + 2, 1+MAXY / 2 };   // esquerda (borda esquerda corrigida)
+
+// Variável global para controlar o estado do jogo (pausado ou jogando)
+int gameState = 0; // 0 em pausa, 1 jogando, o jogo começa pausado
 
 void printPaddle(Paddles *p, int nextY) {
     screenSetColor(CYAN, DARKGRAY);
-    for (int i = 0; i < 4; i++) {
-        //Usando p-> para modificar diratamente a struct e nao uma copia
+    for (int i = 0; i < 2; i++) {
+        // Usando p-> para modificar diretamente a struct e não uma cópia
         screenGotoxy(p->x_paddle, p->y_paddle + i); // Apaga paddle antigo
         printf(" ");
     }
     p->y_paddle = nextY;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 2; i++) {
         screenGotoxy(p->x_paddle, p->y_paddle + i); // Desenha paddle novo
         printf("|");
     }
 }
 
-void printBall(int nextX, int nextY) {
+void printBall(Ball *b, int newX, int newY) { // Passando a struct da bola e alterando como ponteiro para alterar diretamente a struct
     screenSetColor(CYAN, DARKGRAY);
-    screenGotoxy(x, y);
+    screenGotoxy(b->x, b->y);
     printf(" ");
-    x = nextX;
-    y = nextY;
-    screenGotoxy(x, y);
+    b->x = newX;
+    b->y = newY;
+    screenGotoxy(b->x, b->y);
     printf("O");
 }
 
 void printResult(int pontuacao, int pontuacaoB) {
     screenSetColor(YELLOW, DARKGRAY);
     screenGotoxy(35, 22);
-    if (pontuacao>pontuacaoB)
+    if (pontuacao > pontuacaoB)
     {
         printf("Player 1 Wins");
     }
     
-    if (pontuacao<pontuacaoB)
+    if (pontuacao < pontuacaoB)
     {
         printf("Player 2 Wins");
     }
@@ -77,13 +91,13 @@ void printResult(int pontuacao, int pontuacaoB) {
 
 void printPontuacao() {
     screenSetColor(YELLOW, DARKGRAY);
-    screenGotoxy(0, 0);
+    screenGotoxy(20, 0);
     printf("Pontuação A:  %d", pontuacao);
 }
 
 void printPontuacaoB() {
     screenSetColor(YELLOW, DARKGRAY);
-    screenGotoxy(MAXX - 20, 0);
+    screenGotoxy(MAXX - 40, 0);
     printf("Pontuação B: %d", pontuacaoB);
 }
 
@@ -104,16 +118,81 @@ void printGolLines() {
     }
 }
 
+// Função para atualizar a lógica da bola usando struct Ball
+// Funcao principal de atualizacao do jogo.
+void updateBall(Ball *b) {
+    int newX = b->x + b->incX;
+    int newY = b->y + b->incY;
+
+    // Rebater nas bordas superior e inferior
+    if (newY >= MAXY - 1 || newY <= MINY + 1) {
+        if (velocidadeBall > 15) velocidadeBall -= 5; // Aumenta a velocidade da bola a cada batidada na horizontal
+        timerInit(velocidadeBall);
+        b->incY = -b->incY;
+    }
+
+    // Colisão com paddleA (direita)
+    if (newX == paddleA.x_paddle - 1 && newY >= paddleA.y_paddle && newY <= paddleA.y_paddle + 3) {
+        timerInit(velocidadeBall = 50); // Bola volta ao normal ao tocar no paddle
+        b->incX = -b->incX;
+    }
+
+    // Colisão com paddleB (esquerda)
+    if (newX == paddleB.x_paddle + 1 && newY >= paddleB.y_paddle && newY <= paddleB.y_paddle + 3) {
+        timerInit(velocidadeBall = 50);
+        b->incX = -b->incX;
+    }
+
+    // Gol direita
+    if (newX == MAXX - 2 && newY >= MAXY / 2 && newY < MAXY / 2 + 4) {
+        pontuacao++;
+        b->incX = -b->incX;
+        timerInit(velocidadeBall = 50);
+        newX = MAXX / 2; // manda a bola para o meio da tela
+        newY = MAXY / 2;
+        // Pause o jogo só se for a bola principal
+        if (b == &ball) {
+            gameState = 0;
+        }
+    }
+
+    // Gol esquerda
+    else if (newX == MINX + 1 && newY >= MAXY / 2 && newY < MAXY / 2 + 4) {
+        pontuacaoB++;
+        b->incX = -b->incX;
+        timerInit(velocidadeBall = 50);
+        newX = MAXX / 2; // manda a bola para o meio da tela
+        newY = MAXY / 2;
+        // Pause o jogo só se for a bola principal
+        if (b == &ball) {
+            gameState = 0;
+        }
+    }
+
+    // Rebater nas bordas laterais fora do gol
+    else if (newX >= MAXX - 1 || newX <= MINX + 1) {
+        b->incX = -b->incX;
+    }
+
+    // Corrige limites
+    if (newX >= MAXX - 1) newX = MAXX - 2;
+    if (newX <= MINX + 1) newX = MINX + 2;
+
+    printBall(b, newX, newY);
+}
+
+
+
 int main() {
     static int ch = 0;
     static long timer = 0;
-    int gameState = 0; //0 em pausa, 1 jogando, o jogo comeca pausado
-    
+    // int gameState = 0; // Variável global já declarada
+
     screenInit(1);
     keyboardInit();
     timerInit(70);
 
-    printBall(x, y);
+    printBall(&ball, ball.x, ball.y);
     printPaddle(&paddleA, paddleA.y_paddle);
     printPaddle(&paddleB, paddleB.y_paddle);
     printPontuacao();
@@ -121,8 +200,8 @@ int main() {
     printGolLines(); // desenha as gol lines
     screenUpdate();
 
-    while (ch != 10 && pontuacao<2 && pontuacaoB<2) // Enter para sair. O jogo também termina se um jogador
-    {                                               // conseguir mais de 4 pontos
+    while (ch != 10 && pontuacao < 13 && pontuacaoB < 13) // Enter para sair. O jogo também termina se um jogador
+    {                                                       // conseguir mais de 13 pontos
         if (keyhit()) {
             ch = readch();
 
@@ -143,68 +222,19 @@ int main() {
                     if (paddleB.y_paddle + 4 < MAXY - 1)
                         printPaddle(&paddleB, paddleB.y_paddle + 1);
                     break;
-                case 32: // tecla espaco jogo começa
+                case 32: // tecla espaço, jogo começa
                     gameState = 1;
                     break;
             }
 
             screenUpdate();
         }
+       
+        // LOGICA DO JOGO
+        if (timerTimeOver() == 1 && gameState == 1) {
+            updateBall(&ball);
 
         
-        if (timerTimeOver() == 1 && gameState == 1) {
-            int newX = x + incX;
-            int newY = y + incY;
-
-            // Rebater nas bordas superior e inferior
-            if (newY >= MAXY - 1 || newY <= MINY + 1) {
-                if (velocidadeBall > 15) velocidadeBall -= 5; // Aumenta a velocidade da bola a cada batidada na horizantal
-                timerInit(velocidadeBall);
-                incY = -incY;
-            }
-
-            // Colisão com paddleA (direita)
-            if (newX == paddleA.x_paddle - 1 && newY >= paddleA.y_paddle && newY <= paddleA.y_paddle + 3) {
-                timerInit(velocidadeBall = 50); //Bola volta ao normal ao tocar no paddle
-                incX = -incX;
-            }
-
-            // Colisão com paddleB (esquerda)
-            if (newX == paddleB.x_paddle + 1 && newY >= paddleB.y_paddle && newY <= paddleB.y_paddle + 3) {
-                timerInit(velocidadeBall = 50);
-                incX = -incX;
-            }
-
-            // Gol direita
-            if (newX == MAXX - 2 && newY >= MAXY / 2 && newY < MAXY / 2 + 4) {
-                pontuacao++;
-                incX = -incX;
-                timerInit(velocidadeBall = 50);
-                newX=MAXX/2; //manda a bola para o meio da tela
-                newY=MAXY/2;
-                gameState = 0; //pausa o jogo até que seja despausado
-            }
-
-            // Gol esquerda
-            else if (newX == MINX + 1 && newY >= MAXY / 2 && newY < MAXY / 2 + 4) {
-                pontuacaoB++;
-                incX = -incX;
-                timerInit(velocidadeBall = 50);
-                newX=MAXX/2; //manda a bola para o meio da tela
-                newY=MAXY/2;
-                gameState = 0; //pausa o jogo até que seja despausado
-            }
-
-            // Rebater nas bordas laterais fora do gol
-            else if (newX >= MAXX - 1 || newX <= MINX + 1) {
-                incX = -incX;
-            }
-
-            // Corrige limites
-            if (newX >= MAXX - 1) newX = MAXX - 2;
-            if (newX <= MINX + 1) newX = MINX + 2;
-
-            printBall(newX, newY);
             printPaddle(&paddleA, paddleA.y_paddle);
             printPaddle(&paddleB, paddleB.y_paddle);
             printPontuacao();
@@ -215,16 +245,11 @@ int main() {
         }
     }
 
-    // while (ch =! 10)
-    // {
-    //     screenUpdate();
-    //     if (keyhit()) {
-    //         ch = readch();
-    //         screenUpdate();
-    //     }
-
-    //     printResult(pontuacao,pontuacaoB);
-    // }
+    printResult(pontuacao, pontuacaoB);
+    screenGotoxy(32, 23);
+    printf("Pressione ENTER para sair...");
+    screenUpdate();
+    while (readch() != 10); // While como barreira para o Jogador ler a Mensagem
     
     keyboardDestroy();
     screenDestroy();

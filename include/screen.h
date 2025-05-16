@@ -27,7 +27,7 @@
 #define BOX_ENABLE     "(0"
 #define BOX_DISABLE    "(B"
 #define BOX_VLINE      0x78
-#define BOX_HLINE      0x71
+#define BOX_HLINE      0x78 //modifica o formato das linhas Horizantais
 #define BOX_UPLEFT     0x6C
 #define BOX_UPRIGHT    0x6B
 #define BOX_DWNLEFT    0x6D

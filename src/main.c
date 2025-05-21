@@ -12,6 +12,15 @@
 #include "keyboard.h"
 #include "timer.h"
 
+#define MAX_PLAYERS 10 // limite para o ranking
+
+typedef struct {
+    char nome[20];
+    int pontuacao;
+    int id;
+} PlayerRank;
+
+
 typedef struct 
 { 
     int x_paddle, y_paddle;
@@ -34,6 +43,7 @@ typedef struct
 }Player;
 
 
+
 int x = MAXX / 2, y = MAXY / 2;
 Ball ball = {1, 1, MAXX / 2, MAXY / 2};        // Bola principal, com incrementos iniciais 1 e 1
 //Ball extraBall = {-1, -1, MAXX / 2, MAXY / 2}; // Bola extra, inicialmente inativa (incX = incY = -1)
@@ -41,12 +51,75 @@ int velocidadeBall = 50;
 int activateBall = 0;
 Player one;
 Player two;
-
 Paddles paddleA = { MAXX - 3, 1+MAXY / 2 };   // direita (borda direita corrigida)
 Paddles paddleB = { MINX + 2, 1+MAXY / 2 };   // esquerda (borda esquerda corrigida)
-
 // Variável global para controlar o estado do jogo (pausado ou jogando)
 int gameState = 0; // 0 em pausa, 1 jogando, o jogo começa pausado
+
+// Função para comparar pontuação (usando qsort)
+int comparePontuacao(const void *a, const void *b) {
+    return ((PlayerRank*)b)->pontuacao - ((PlayerRank*)a)->pontuacao;
+}
+
+// Lê e mostra o ranking anterior, se existir
+void mostrarRankingAnterior() {
+    FILE *f = fopen("ranking.txt", "r");
+    if (f == NULL) {
+        printf("Nenhum ranking anterior encontrado.\n");
+        return;
+    }
+
+    printf("\n==== Ranking Anterior ====\n");
+    char linha[100];
+    while (fgets(linha, sizeof(linha), f)) {
+        printf("%s", linha);
+    }
+    printf("==========================\n");
+    fclose(f);
+}
+
+// Salva os rankings ordenados
+void salvarRanking(Player p1, Player p2) {
+    PlayerRank lista[MAX_PLAYERS];
+    int count = 0;
+
+    FILE *f = fopen("ranking.txt", "r");
+    if (f != NULL) {
+        while (fscanf(f, "%19s | PT: %d | ID: %d\n", lista[count].nome, &lista[count].pontuacao, &lista[count].id) == 3) {
+            count++;
+        }
+        fclose(f);
+    }
+
+    // Adiciona os jogadores atuais
+    strncpy(lista[count].nome, p1.nome, 19);
+    lista[count].pontuacao = p1.pontuacao;
+    lista[count].id = p1.id;
+    count++;
+
+    strncpy(lista[count].nome, p2.nome, 19);
+    lista[count].pontuacao = p2.pontuacao;
+    lista[count].id = p2.id;
+    count++;
+
+    // Ordena os jogadores pela pontuação (decrescente)
+    qsort(lista, count, sizeof(PlayerRank), comparePontuacao);
+
+    // Escreve o ranking ordenado
+    f = fopen("ranking.txt", "w");
+    if (f == NULL) {
+        perror("Erro ao abrir arquivo para escrita");
+        return;
+    }
+
+    for (int i = 0; i < count; i++) {
+        fprintf(f, "%s | PT: %d | ID: %d\n", lista[i].nome, lista[i].pontuacao, lista[i].id);
+    }
+
+    fclose(f);
+}
+
+
 
 void printPaddle(Paddles *p, int nextY) {
     screenSetColor(CYAN, DARKGRAY);
@@ -186,6 +259,8 @@ int main() {
     static long timer = 0;
     char x[20];
 
+    mostrarRankingAnterior();
+
     
     printf("Digite o nome do player 1: ");
     scanf("%19s", x);  // evita ultrapassar os 20 caracteres
@@ -262,15 +337,9 @@ int main() {
     printResult(one.pontuacao, two.pontuacao);
     
     // Grava ranking final no arquivo
-    FILE *archive = fopen("ranking.txt", "w");
-    if (archive == NULL) {
-     perror("Erro ao abrir o arquivo de ranking");
-    } else {
-     fprintf(archive, "%s | PT: %d | ID: %d\n", one.nome, one.pontuacao, one.id);
-     fprintf(archive, "%s | PT: %d | ID: %d\n", two.nome, two.pontuacao, two.id);
-     fclose(archive);
-      }
-
+    salvarRanking(one, two);
+    // Mostrar Novamente o Ranking ao final do jogo.
+    mostrarRankingAnterior();
     screenGotoxy(32, 23);
     printf("Pressione ENTER para sair...");
     screenUpdate();

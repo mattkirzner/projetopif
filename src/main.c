@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "screen.h"
 #include "keyboard.h"
 #include "timer.h"
@@ -91,21 +92,43 @@ void salvarRanking(Player p1, Player p2) {
         fclose(f);
     }
 
-    // Adiciona os jogadores atuais
-    strncpy(lista[count].nome, p1.nome, 19);
-    lista[count].pontuacao = p1.pontuacao;
-    lista[count].id = p1.id;
-    count++;
+    // Verifica se o jogador 1 já existe
+    int encontrado1 = 0;
+    for (int i = 0; i < count; i++) {
+        if (lista[i].id == p1.id) {
+            lista[i].pontuacao += p1.pontuacao;
+            encontrado1 = 1;
+            break;
+        }
+    }
+    if (!encontrado1 && count < MAX_PLAYERS) {
+        strncpy(lista[count].nome, p1.nome, 19);
+        lista[count].nome[19] = '\0';
+        lista[count].pontuacao = p1.pontuacao;
+        lista[count].id = p1.id;
+        count++;
+    }
 
-    strncpy(lista[count].nome, p2.nome, 19);
-    lista[count].pontuacao = p2.pontuacao;
-    lista[count].id = p2.id;
-    count++;
+    // Verifica se o jogador 2 já existe
+    int encontrado2 = 0;
+    for (int i = 0; i < count; i++) {
+        if (lista[i].id == p2.id) {
+            lista[i].pontuacao += p2.pontuacao;
+            encontrado2 = 1;
+            break;
+        }
+    }
+    if (!encontrado2 && count < MAX_PLAYERS) {
+        strncpy(lista[count].nome, p2.nome, 19);
+        lista[count].nome[19] = '\0';
+        lista[count].pontuacao = p2.pontuacao;
+        lista[count].id = p2.id;
+        count++;
+    }
 
-    // Ordena os jogadores pela pontuação (decrescente)
+    // Ordena por pontuação decrescente
     qsort(lista, count, sizeof(PlayerRank), comparePontuacao);
 
-    // Escreve o ranking ordenado
     f = fopen("ranking.txt", "w");
     if (f == NULL) {
         perror("Erro ao abrir arquivo para escrita");
@@ -252,7 +275,12 @@ void updateBall(Ball *b) {
     printBall(b, newX, newY);
 }
 
-
+//para deixar o nome sempre em maisculo
+void to_uppercase(char *str) {
+    for (int i = 0; str[i]; i++) {
+        str[i] = toupper(str[i]);
+    }
+}
 
 int main() {
     static int ch = 0;
@@ -264,6 +292,7 @@ int main() {
     
     printf("Digite o nome do player 1: ");
     scanf("%19s", x);  // evita ultrapassar os 20 caracteres
+    to_uppercase(x);
     one.nome = malloc(strlen(x) + 1);
     strcpy(one.nome, x);
     printf("Digite seu ID Unico: ");
@@ -271,6 +300,7 @@ int main() {
 
     printf("Digite o nome do player 2: ");
     scanf("%19s", x);
+    to_uppercase(x);
     two.nome = malloc(strlen(x) + 1);
     strcpy(two.nome, x);
     printf("Digite seu ID Unico: ");

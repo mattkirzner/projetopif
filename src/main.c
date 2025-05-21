@@ -44,7 +44,7 @@ typedef struct
 }Player;
 
 
-
+//VAR GLOBAIS.
 int x = MAXX / 2, y = MAXY / 2;
 Ball ball = {1, 1, MAXX / 2, MAXY / 2};        // Bola principal, com incrementos iniciais 1 e 1
 //Ball extraBall = {-1, -1, MAXX / 2, MAXY / 2}; // Bola extra, inicialmente inativa (incX = incY = -1)
@@ -56,6 +56,9 @@ Paddles paddleA = { MAXX - 3, 1+MAXY / 2 };   // direita (borda direita corrigid
 Paddles paddleB = { MINX + 2, 1+MAXY / 2 };   // esquerda (borda esquerda corrigida)
 // Variável global para controlar o estado do jogo (pausado ou jogando)
 int gameState = 0; // 0 em pausa, 1 jogando, o jogo começa pausado
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 // Função para comparar pontuação (usando qsort)
 int comparePontuacao(const void *a, const void *b) {
@@ -275,7 +278,7 @@ void updateBall(Ball *b) {
     printBall(b, newX, newY);
 }
 
-//para deixar o nome sempre em maisculo
+//para deixar o nome sempre em maiuculo 
 void to_uppercase(char *str) {
     for (int i = 0; str[i]; i++) {
         str[i] = toupper(str[i]);

@@ -1,6 +1,7 @@
 # 🎮 SpeedAirHockey
 
 ## 📁 Estrutura do Repositório
+```
 projetopif/
 ├── build/
 │ └── game 
@@ -14,7 +15,7 @@ projetopif/
 │ ├── screen.c
 │ └── timer.c
 ├── README.md 
-
+```
 
 
 ## 👥 1. Integrantes do Grupo (usuários no GitHub)

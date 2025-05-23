@@ -2,14 +2,18 @@
 
 ## 📁 Estrutura do Repositório
 projetopif/
-├── src/ # Código-fonte do jogo
+├── build/
+│ └── game 
+├── include/ 
+│ ├── keyboard.h
+│ ├── screen.h
+│ └── timer.h
+├── src/ 
+│ ├── keyboard.c
 │ ├── main.c
-│ ├── game.c
-├── include/ # Arquivos de cabeçalho
-│ ├── game.h
-├── build/ # Arquivos binários gerados
-├── README.md # Documentação do projeto
-├── Makefile # Script de compilação
+│ ├── screen.c
+│ └── timer.c
+├── README.md 
 
 
 

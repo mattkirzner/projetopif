@@ -44,16 +44,12 @@
     No terminal, estando na raiz do projeto, execute:
       gcc ./src/*.c -I./include -o ./build/game
 
-    Este comando compila todos os arquivos .c na pasta 'src/',
-    incluindo os cabeçalhos da pasta 'include/', e gera o executável 'game'
-    dentro da pasta 'build/'.
+   
 
  -> Executar o jogo:
     Após a compilação, execute o jogo com:
       ./build/game
 
-    O jogo será iniciado no terminal com suporte a entrada de teclado.
-    Certifique-se de que o terminal esteja na raiz do projeto.
 
  
  6. Descrição do Jogo:
